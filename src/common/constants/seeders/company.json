@@ -1,0 +1,20 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "PixelCraft Solutions"
+    },
+    {
+      "id": 2,
+      "name": "TechVista Innovations"
+    },
+    {
+      "id": 3,
+      "name": "QuantumSprint Technologies"
+    },
+    {
+      "id": 4,
+      "name": "BlazeByte Solutions"
+    }
+  ]
+}
