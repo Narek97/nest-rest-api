@@ -7,7 +7,7 @@ import {
 } from 'sequelize-typescript';
 import { User } from './user.model';
 
-@Table({ tableName: 'user_accept' })
+@Table({ tableName: 'user_accept', createdAt: false, updatedAt: false })
 export class UserAccept extends Model<UserAccept> {
   @Column({
     type: DataType.INTEGER,
@@ -18,10 +18,10 @@ export class UserAccept extends Model<UserAccept> {
   id: number;
 
   @Column({ type: DataType.INTEGER, allowNull: false })
-  acceptId: number;
+  userId: number;
 
-  @Column({ type: DataType.DATE })
-  createdAt: Date;
+  @Column({ type: DataType.STRING, allowNull: false })
+  acceptId: string;
 
   ///////////////////////////////// Relations /////////////////////////////////
   @BelongsTo(() => User, {

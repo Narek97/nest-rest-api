@@ -8,7 +8,7 @@ import {
 import { User } from './user.model';
 import { Workspace } from './worksapace.model';
 
-@Table({ tableName: 'user_workspace' })
+@Table({ tableName: 'user_workspace', createdAt: false, updatedAt: false })
 export class UserWorkspaces extends Model<UserWorkspaces> {
   @Column({
     type: DataType.INTEGER,

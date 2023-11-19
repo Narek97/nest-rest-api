@@ -3,6 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { DynamicModule } from '@nestjs/common/interfaces/modules/dynamic-module.interface';
 import { Type } from '@nestjs/common/interfaces/type.interface';
 import { ForwardReference } from '@nestjs/common/interfaces/modules/forward-reference.interface';
+import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
+import { JwtConfigOptions } from '../config/jwt-config';
 
 const providers = [];
 
@@ -12,17 +15,14 @@ const imports: Array<
   ConfigModule.forRoot({
     isGlobal: true,
   }),
+  ScheduleModule.forRoot(),
+  JwtModule.register(JwtConfigOptions),
 ];
-
-// if (!process.env.NODE_APP_INSTANCE || process.env.NODE_APP_INSTANCE == '0') {
-//   imports.push();
-//   // ...,
-// }
 
 @Global()
 @Module({
   providers,
   imports,
-  exports: [...providers],
+  exports: [...providers, JwtModule],
 })
 export class SharedModule {}

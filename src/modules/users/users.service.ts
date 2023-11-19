@@ -1,11 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { User, UserRole } from '../../database/models';
+import { CreateUserDto } from './dto/create-user.dto';
+import { RolesService } from '../roles/roles.service';
+import { RoleEnum } from '../../common/enums';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return '';
+  constructor(readonly roleRepository: RolesService) {}
+  async createUser(dto: CreateUserDto): Promise<User> {
+    const user = await User.create(dto);
+    const role = await this.roleRepository.getRoleByType(RoleEnum.USER);
+    await UserRole.create({
+      userId: user.dataValues.id,
+      roleId: role.dataValues.id,
+    });
+    return user;
   }
 
   findAll() {
@@ -22,5 +32,12 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async getUserByEmail(email: string): Promise<User> {
+    return User.findOne({
+      where: { email },
+      // include: { all: true },
+    });
   }
 }

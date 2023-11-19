@@ -7,7 +7,7 @@ import {
 } from 'sequelize-typescript';
 import { User } from './user.model';
 
-@Table({ tableName: 'user_token' })
+@Table({ tableName: 'user_token', createdAt: false, updatedAt: false })
 export class UserToken extends Model<UserToken> {
   @Column({
     type: DataType.INTEGER,
