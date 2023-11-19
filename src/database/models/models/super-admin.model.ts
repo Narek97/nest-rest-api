@@ -3,7 +3,7 @@ import { Column, DataType, Table } from 'sequelize-typescript';
 import { SuperAdminEnum } from '../../../common/enums';
 
 @Table({ tableName: 'super-admin' })
-export class User extends BaseModel<User, null> {
+export class SuperAdmin extends BaseModel<SuperAdmin, null> {
   @Column({ type: DataType.STRING, allowNull: false })
   email: string;
 

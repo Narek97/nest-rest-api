@@ -21,6 +21,6 @@ export class Workspace extends BaseModel<Workspace, null> {
   @BelongsTo(() => Organisation, { foreignKey: 'orgId' })
   organisation: Organisation;
 
-  @BelongsToMany(() => User, 'UserWorkspaces', 'workspaceId', 'userId')
+  @BelongsToMany(() => User, 'user_workspace', 'workspaceId', 'userId')
   users: User;
 }

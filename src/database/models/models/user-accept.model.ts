@@ -6,10 +6,9 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { User } from './user.model';
-import { Workspace } from './worksapace.model';
 
-@Table({ tableName: 'user_workspace' })
-export class UserWorkspaces extends Model<UserWorkspaces> {
+@Table({ tableName: 'user_accept' })
+export class UserAccept extends Model<UserAccept> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -19,15 +18,14 @@ export class UserWorkspaces extends Model<UserWorkspaces> {
   id: number;
 
   @Column({ type: DataType.INTEGER, allowNull: false })
-  userId: number;
+  acceptId: number;
 
-  @Column({ type: DataType.INTEGER, allowNull: false })
-  workspaceId: number;
+  @Column({ type: DataType.DATE })
+  createdAt: Date;
 
   ///////////////////////////////// Relations /////////////////////////////////
-  @BelongsTo(() => Workspace, { foreignKey: 'workspaceId' })
-  workspaces: Workspace;
-
-  @BelongsTo(() => User, { foreignKey: 'userId' })
-  users: User;
+  @BelongsTo(() => User, {
+    foreignKey: 'userId',
+  })
+  user: User;
 }

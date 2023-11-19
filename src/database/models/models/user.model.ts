@@ -8,6 +8,7 @@ import {
 } from 'sequelize-typescript';
 import { Organisation } from './organisation.model';
 import { Workspace } from './worksapace.model';
+import { Role } from './role.model';
 
 @Table({ tableName: 'users' })
 export class User extends BaseModel<User, null> {
@@ -29,7 +30,7 @@ export class User extends BaseModel<User, null> {
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
   verified: boolean;
 
-  @Column({ type: DataType.NUMBER })
+  @Column({ type: DataType.INTEGER })
   orgId: number;
 
   ///////////////////////////////// Relations /////////////////////////////////
@@ -38,6 +39,9 @@ export class User extends BaseModel<User, null> {
   })
   organisation: Organisation;
 
-  @BelongsToMany(() => Workspace, 'UserWorkspaces', 'userId', 'workspaceId')
+  @BelongsToMany(() => Workspace, 'user_workspace', 'userId', 'workspaceId')
   workspaces: Workspace;
+
+  @BelongsToMany(() => Role, 'user_role', 'userId', 'roleId')
+  roles: Role[];
 }

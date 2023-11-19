@@ -6,8 +6,8 @@ import {
   HasMany,
   Table,
 } from 'sequelize-typescript';
-import { User } from './user.model';
 import { Company } from './company.model';
+import { User } from './user.model';
 import { Workspace } from './worksapace.model';
 
 @Table({ tableName: 'organisations' })

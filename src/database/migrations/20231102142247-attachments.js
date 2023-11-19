@@ -27,7 +27,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      relatedID: {
+      relatedId: {
         type: Sequelize.INTEGER,
         allowNull: true,
       },
