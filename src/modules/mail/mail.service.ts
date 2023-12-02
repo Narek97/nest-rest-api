@@ -11,16 +11,15 @@ export class MailService {
   }
 
   async sendSignupVerifyEmail(email: string, activationLink: string) {
-    const url = `${process.env.API_URL}/api/auth/verify-email?verifyId=${activationLink}`;
-    const mail = {
-      to: email,
-      from: { email: this.EMAIL_FROM, name: 'Nest Rest API' },
-      subject: 'Verify your email',
-      templateId: process.env.SENDGRID_TEMPLATE_KEY,
-      dynamicTemplateData: { url },
-    };
-
     try {
+      const url = `${process.env.API_URL}/api/auth/verify-email?verifyId=${activationLink}`;
+      const mail = {
+        to: email,
+        from: { email: this.EMAIL_FROM, name: 'Nest Rest API' },
+        subject: 'Verify your email',
+        templateId: process.env.SENDGRID_TEMPLATE_KEY,
+        dynamicTemplateData: { url },
+      };
       return this.sendgridService.send(mail);
     } catch (err) {
       throw new BadRequestException('SendGrid Error ... ', err);

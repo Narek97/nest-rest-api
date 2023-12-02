@@ -43,7 +43,7 @@ export class UsersService {
 
   async getUserById(id: number): Promise<User> {
     return User.findByPk(id, {
-      include: { all: true },
+      // include: { all: true },
       attributes: { exclude: ['password'] },
     });
   }
@@ -53,7 +53,6 @@ export class UsersService {
     if (!user) {
       throw new HttpException('user not found', HttpStatus.BAD_REQUEST);
     }
-    console.log(user, 'user');
     return User.update(
       {
         verified: true,

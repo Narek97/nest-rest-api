@@ -2,9 +2,17 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserAccept } from '../../database/models';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Op } from 'sequelize';
+import { MailService } from '../mail/mail.service';
+import { v4 as uuid } from 'uuid';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AcceptService {
+  constructor(
+    readonly userService: UsersService,
+    readonly mailService: MailService,
+  ) {}
+
   async createUserAccept(userId: number, acceptId: string): Promise<void> {
     await UserAccept.create({ userId, acceptId });
   }
@@ -49,7 +57,15 @@ export class AcceptService {
       },
     })
       .then((item) => {
-        item.forEach((el) => {
+        item.forEach(async (el) => {
+          const activationLink = uuid();
+          const user = await this.userService.getUserById(el.userId);
+          await this.mailService.sendSignupVerifyEmail(
+            user.email,
+            activationLink,
+          );
+          await this.createUserAccept(user.id, activationLink);
+
           return UserAccept.destroy({
             where: {
               userId: el.userId,
