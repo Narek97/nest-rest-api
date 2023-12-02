@@ -17,6 +17,9 @@ export class UserToken extends Model<UserToken> {
   })
   id: number;
 
+  @Column({ type: DataType.INTEGER, allowNull: false })
+  userId: number;
+
   @Column({ type: DataType.STRING, allowNull: false })
   refreshToken: string;
 
