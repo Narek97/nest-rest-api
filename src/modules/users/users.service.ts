@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from '../../database/models';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -18,26 +18,51 @@ export class UsersService {
     return user;
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+  // findAll() {
+  //   return `This action returns all users`;
+  // }
+  //
+  // findOne(id: number) {
+  //   return `This action returns a #${id} user`;
+  // }
+  //
+  // update(id: number, updateUserDto: UpdateUserDto) {
+  //   return `This action updates a #${id} user`;
+  // }
+  //
+  // remove(id: number) {
+  //   return `This action removes a #${id} user`;
+  // }
 
   async getUserByEmail(email: string): Promise<User> {
     return User.findOne({
       where: { email },
       // include: { all: true },
     });
+  }
+
+  async getUserById(id: number): Promise<User> {
+    return User.findByPk(id, {
+      include: { all: true },
+      attributes: { exclude: ['password'] },
+    });
+  }
+
+  async verifyUser(id: number): Promise<any> {
+    const user = await this.getUserById(id);
+    if (!user) {
+      throw new HttpException('user not found', HttpStatus.BAD_REQUEST);
+    }
+    console.log(user, 'user');
+    return User.update(
+      {
+        verified: true,
+      },
+      {
+        where: {
+          id: user.id,
+        },
+      },
+    );
   }
 }
