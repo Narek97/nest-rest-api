@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { User, UserRole } from '../../database/models';
+import { Role, User, UserRole } from '../../database/models';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RolesService } from '../roles/roles.service';
 import { RoleEnum } from '../../common/enums';
@@ -9,30 +8,18 @@ import { RoleEnum } from '../../common/enums';
 export class UsersService {
   constructor(readonly roleRepository: RolesService) {}
   async createUser(dto: CreateUserDto): Promise<User> {
-    const user = await User.create(dto);
-    const role = await this.roleRepository.getRoleByType(RoleEnum.USER);
-    await UserRole.create({
-      userId: user.dataValues.id,
-      roleId: role.dataValues.id,
-    });
-    return user;
+    try {
+      const user = await User.create(dto);
+      const role = await this.roleRepository.getRoleByType(RoleEnum.USER);
+      await UserRole.create({
+        userId: user.dataValues.id,
+        roleId: role.dataValues.id,
+      });
+      return user;
+    } catch (err) {
+      console.log(err);
+    }
   }
-
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
-  //
-  // findOne(id: number) {
-  //   return `This action returns a #${id} user`;
-  // }
-  //
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
-  //
-  // remove(id: number) {
-  //   return `This action removes a #${id} user`;
-  // }
 
   async getUserByEmail(email: string): Promise<User> {
     return User.findOne({
@@ -42,10 +29,16 @@ export class UsersService {
   }
 
   async getUserById(id: number): Promise<User> {
-    return User.findByPk(id, {
-      // include: { all: true },
+    const user = await User.findByPk(id, {
+      include: {
+        model: Role,
+        attributes: {
+          exclude: [],
+        },
+      },
       attributes: { exclude: ['password'] },
     });
+    return user;
   }
 
   async verifyUser(id: number): Promise<any> {
@@ -63,5 +56,9 @@ export class UsersService {
         },
       },
     );
+  }
+
+  async getMe(id: number): Promise<User> {
+    return this.getUserById(id);
   }
 }

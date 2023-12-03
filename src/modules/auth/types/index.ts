@@ -18,7 +18,7 @@ export class RegisterUserRequest {
   orgId: number;
 }
 
-export class RegisterUserResponse {
+export class RegisterUserResponse extends BaseResponseType {
   @ApiProperty({ example: 1 })
   orgId: number;
 

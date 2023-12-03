@@ -10,7 +10,7 @@ import { Organisation } from './organisation.model';
 import { Workspace } from './worksapace.model';
 import { Role } from './role.model';
 
-@Table({ tableName: 'users' })
+@Table({ tableName: 'users', createdAt: false, updatedAt: false })
 export class User extends BaseModel<User, null> {
   @Column({ type: DataType.STRING, allowNull: false })
   email: string;
@@ -40,7 +40,7 @@ export class User extends BaseModel<User, null> {
   organisation: Organisation;
 
   @BelongsToMany(() => Workspace, 'user_workspace', 'userId', 'workspaceId')
-  workspaces: Workspace;
+  workspaces: Workspace[];
 
   @BelongsToMany(() => Role, 'user_role', 'userId', 'roleId')
   roles: Role[];

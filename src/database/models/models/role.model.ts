@@ -1,23 +1,10 @@
-import {
-  BelongsToMany,
-  Column,
-  DataType,
-  Model,
-  Table,
-} from 'sequelize-typescript';
-import { User } from './user.model';
+import { BelongsToMany, Column, DataType, Table } from 'sequelize-typescript';
 import { RoleEnum } from '../../../common/enums';
+import { BaseModel } from '../base.model';
+import { User } from './user.model';
 
 @Table({ tableName: 'roles', createdAt: false, updatedAt: false })
-export class Role extends Model<Role> {
-  @Column({
-    type: DataType.INTEGER,
-    autoIncrement: true,
-    allowNull: false,
-    primaryKey: true,
-  })
-  id: number;
-
+export class Role extends BaseModel<Role, null> {
   @Column({
     type: DataType.ENUM(...Object.values(RoleEnum)),
     allowNull: false,

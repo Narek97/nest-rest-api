@@ -9,7 +9,7 @@ import {
 import { Organisation } from './organisation.model';
 import { User } from './user.model';
 
-@Table({ tableName: 'workspaces' })
+@Table({ tableName: 'workspaces', createdAt: false, updatedAt: false })
 export class Workspace extends BaseModel<Workspace, null> {
   @Column({ type: DataType.STRING, allowNull: false })
   name: string;
@@ -22,5 +22,5 @@ export class Workspace extends BaseModel<Workspace, null> {
   organisation: Organisation;
 
   @BelongsToMany(() => User, 'user_workspace', 'workspaceId', 'userId')
-  users: User;
+  users: User[];
 }

@@ -14,7 +14,7 @@ import {
   RegisterUserResponse,
 } from './types';
 import { User } from '../../database/models';
-import { Public } from '../../decorators/publicj.decorator';
+import { Public } from '../../decorators/public.decorator';
 import { Response } from 'express';
 import { loginUserDto } from '../users/dto/login-user.dto';
 

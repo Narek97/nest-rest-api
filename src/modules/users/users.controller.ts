@@ -1,37 +1,21 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthGuard } from '../../guards/auth.guard';
+import { GetUser } from '../../decorators/user.decorator';
+import { User } from '../../database/models';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { GetMeResponse } from './types';
+import { RolesGuard } from '../../guards/role.guard';
 
-@Controller('users')
+@ApiTags('User')
+@Controller('user')
+@UseGuards(AuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // @Get()
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
-  //
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.usersService.findOne(+id);
-  // }
-  //
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
-  //
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.usersService.remove(+id);
-  // }
+  @Get('/me')
+  @ApiOkResponse({ type: GetMeResponse })
+  getMe(@GetUser() user: User): Promise<User> {
+    return this.usersService.getMe(user.id);
+  }
 }
