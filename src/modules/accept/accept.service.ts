@@ -17,10 +17,18 @@ export class AcceptService {
     await UserAccept.create({ userId, acceptId });
   }
 
-  async findVerifyUserByUserId(userId: number): Promise<UserAccept> {
+  async findVerifyUserIdByUserId(userId: number): Promise<UserAccept> {
     return UserAccept.findOne({
       where: {
         userId,
+      },
+    });
+  }
+
+  async findVerifyUserIdByAcceptId(acceptId: string): Promise<UserAccept> {
+    return UserAccept.findOne({
+      where: {
+        acceptId,
       },
     });
   }
@@ -32,7 +40,10 @@ export class AcceptService {
       },
     });
     if (!verifyUser) {
-      throw new HttpException('invalid response url', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        { message: 'invalid code' },
+        HttpStatus.BAD_REQUEST,
+      );
     }
     await UserAccept.destroy({
       where: {

@@ -32,15 +32,14 @@ export class AuthGuard implements CanActivate {
         if (user) {
           req.user = user;
         } else {
-          throw new UnauthorizedException('Unauthorized');
+          throw new UnauthorizedException({ message: 'Unauthorized' });
         }
       } else {
-        throw new UnauthorizedException('Unauthorized');
+        throw new UnauthorizedException({ message: 'Unauthorized' });
       }
       return true;
     } catch (e) {
-      console.error(e, 'error');
-      throw new UnauthorizedException('Unauthorized');
+      throw new UnauthorizedException({ message: 'Unauthorized' });
     }
   }
 }

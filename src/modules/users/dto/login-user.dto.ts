@@ -10,3 +10,9 @@ export class loginUserDto {
   @MinLength(8)
   readonly password: string;
 }
+
+export class loginCodeUserDto {
+  @IsNotEmpty()
+  @MinLength(8)
+  readonly code: string;
+}

@@ -4,10 +4,11 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { AcceptModule } from '../accept/accepy.module';
 import { MailModule } from '../mail/mail.module';
+import { SmsModule } from '../sms/sms.module';
 
 @Module({
   controllers: [AuthController],
   providers: [AuthService],
-  imports: [UsersModule, AcceptModule, MailModule],
+  imports: [UsersModule, AcceptModule, MailModule, SmsModule],
 })
 export class AuthModule {}

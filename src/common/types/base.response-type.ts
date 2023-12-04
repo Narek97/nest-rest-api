@@ -10,3 +10,8 @@ export class BaseResponseType {
   @ApiProperty({ example: '2023-11-19 12:45:44' })
   updatedAt: string;
 }
+
+export class BaseMessageResponseType {
+  @ApiProperty({ example: 'ok' })
+  message: string;
+}

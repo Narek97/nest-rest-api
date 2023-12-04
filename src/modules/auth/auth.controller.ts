@@ -8,6 +8,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
+  LoginCodeReques,
   LoginUserRequest,
   LoginUserResponse,
   RegisterUserRequest,
@@ -16,7 +17,8 @@ import {
 import { User } from '../../database/models';
 import { Public } from '../../decorators/public.decorator';
 import { Response } from 'express';
-import { loginUserDto } from '../users/dto/login-user.dto';
+import { loginCodeUserDto, loginUserDto } from '../users/dto/login-user.dto';
+import { BaseMessageResponseType } from '../../common/types/base.response-type';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -35,6 +37,20 @@ export class AuthController {
   @Post('/login')
   async login(@Body() dto: loginUserDto): Promise<LoginUserResponse> {
     return this.authService.login(dto);
+  }
+
+  @ApiBody({ type: LoginUserRequest })
+  @ApiOkResponse({ type: BaseMessageResponseType })
+  @Post('/login2fa')
+  async login2fa(@Body() dto: loginUserDto): Promise<BaseMessageResponseType> {
+    return this.authService.login2fa(dto);
+  }
+
+  @ApiBody({ type: LoginCodeReques })
+  @ApiOkResponse({ type: LoginUserResponse })
+  @Post('/login/code')
+  async loginCode(@Body() dto: loginCodeUserDto): Promise<LoginUserResponse> {
+    return this.authService.loginCode(dto);
   }
 
   @ApiExcludeEndpoint()

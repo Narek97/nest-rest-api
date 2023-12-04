@@ -56,3 +56,8 @@ export class LoginUserResponse {
   })
   refreshToken: string;
 }
+
+export class LoginCodeReques {
+  @ApiProperty({ example: '12345678' })
+  code: string;
+}

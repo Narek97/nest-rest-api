@@ -51,6 +51,7 @@
     "sequelize-cli": "^6.6.1",
     "sequelize-typescript": "^2.1.5",
     "swagger-ui-express": "^5.0.0",
+    "twilio": "^4.19.3",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

@@ -11,9 +11,11 @@ import { v4 as uuid } from 'uuid';
 import { AcceptService } from '../accept/accept.service';
 import { User, UserToken } from '../../database/models';
 import { MailService } from '../mail/mail.service';
-import { loginUserDto } from '../users/dto/login-user.dto';
+import { loginCodeUserDto, loginUserDto } from '../users/dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserResponse } from './types';
+import { SmsService } from '../sms/sms.service';
+import { BaseMessageResponseType } from '../../common/types/base.response-type';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +23,7 @@ export class AuthService {
     readonly userService: UsersService,
     readonly acceptService: AcceptService,
     readonly mailService: MailService,
+    readonly smsService: SmsService,
     readonly jwtService: JwtService,
   ) {}
 
@@ -71,6 +74,60 @@ export class AuthService {
     } else {
       throw new HttpException('user not verified', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async login2fa(dto: loginUserDto): Promise<BaseMessageResponseType> {
+    const user = await this.userService.getUserByEmail(dto.email);
+    if (!user) {
+      throw new UnauthorizedException({
+        message: 'incorrect email or password',
+      });
+    }
+    if (user.verified) {
+      const passwordEquals = await bcrypt.compare(dto.password, user.password);
+      if (!passwordEquals) {
+        throw new UnauthorizedException({
+          message: 'incorrect email or password',
+        });
+      }
+      const min = 10000000;
+      const max = 99999999;
+      const activationLink = Math.floor(Math.random() * (max - min + 1)) + min;
+      await this.smsService.sendSms('+37477345522', activationLink.toString());
+      await this.acceptService.createUserAccept(
+        user.id,
+        activationLink.toString(),
+      );
+      return { message: "The code has been sent to the user's phone number" };
+    } else {
+      throw new HttpException(
+        { message: 'user not found' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async loginCode(dto: loginCodeUserDto): Promise<LoginUserResponse> {
+    const verifyUser = await this.acceptService.findAndVerifyUserByAcceptId(
+      dto.code,
+    );
+    console.log(verifyUser, 'verifyUser');
+    if (!verifyUser.userId) {
+      throw new HttpException(
+        { message: 'code not valid' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const user = await this.userService.getUserById(verifyUser.userId);
+    if (!user) {
+      throw new HttpException(
+        { message: 'user not find' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const { accessToken, refreshToken } = await this.generateToken(user);
+    await this.saveToken(user.id, refreshToken);
+    return { accessToken, refreshToken };
   }
 
   async confirmEmail(verifyId: string): Promise<any> {

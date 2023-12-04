@@ -29,7 +29,7 @@ export class UsersService {
   }
 
   async getUserById(id: number): Promise<User> {
-    const user = await User.findByPk(id, {
+    return User.findByPk(id, {
       include: {
         model: Role,
         attributes: {
@@ -38,7 +38,6 @@ export class UsersService {
       },
       attributes: { exclude: ['password'] },
     });
-    return user;
   }
 
   async verifyUser(id: number): Promise<any> {

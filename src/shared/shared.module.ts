@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { JwtConfigOptions } from '../config/jwt-config';
 import { MailModule } from '../modules/mail/mail.module';
+import { SmsModule } from '../modules/sms/sms.module';
 
 const providers = [];
 
@@ -19,6 +20,7 @@ const imports: Array<
   ScheduleModule.forRoot(),
   JwtModule.register(JwtConfigOptions),
   MailModule,
+  SmsModule,
 ];
 
 @Global()
