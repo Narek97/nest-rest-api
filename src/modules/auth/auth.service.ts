@@ -8,20 +8,20 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
-import { AcceptService } from '../accept/accept.service';
-import { User, UserToken } from '../../database/models';
+import { User, UserCode, UserToken } from '../../database/models';
 import { MailService } from '../mail/mail.service';
 import { loginCodeUserDto, loginUserDto } from '../users/dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserResponse } from './types';
 import { SmsService } from '../sms/sms.service';
 import { BaseMessageResponseType } from '../../common/types/base.response-type';
+import { UserCodeService } from '../user-code/user-code.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     readonly userService: UsersService,
-    readonly acceptService: AcceptService,
+    readonly userCodeService: UserCodeService,
     readonly mailService: MailService,
     readonly smsService: SmsService,
     readonly jwtService: JwtService,
@@ -43,7 +43,7 @@ export class AuthService {
     });
     const activationLink = uuid();
     await this.mailService.sendSignupVerifyEmail(user.email, activationLink);
-    await this.acceptService.createUserAccept(user.id, activationLink);
+    await this.userCodeService.createUserCode(user.id, activationLink);
 
     return user;
   }
@@ -54,6 +54,12 @@ export class AuthService {
       throw new UnauthorizedException({
         message: 'incorrect email or password',
       });
+    }
+    if (user.isTwoFactorEnable) {
+      throw new HttpException(
+        { message: 'turn off 2fa verification' },
+        HttpStatus.BAD_REQUEST,
+      );
     }
     if (user.verified) {
       const passwordEquals = await bcrypt.compare(dto.password, user.password);
@@ -72,7 +78,10 @@ export class AuthService {
         message: 'incorrect email or password',
       });
     } else {
-      throw new HttpException('user not verified', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        { message: 'user not verified' },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -82,6 +91,12 @@ export class AuthService {
       throw new UnauthorizedException({
         message: 'incorrect email or password',
       });
+    }
+    if (!user.isTwoFactorEnable) {
+      throw new HttpException(
+        { message: 'turn on 2fa verification' },
+        HttpStatus.BAD_REQUEST,
+      );
     }
     if (user.verified) {
       const passwordEquals = await bcrypt.compare(dto.password, user.password);
@@ -94,7 +109,7 @@ export class AuthService {
       const max = 99999999;
       const activationLink = Math.floor(Math.random() * (max - min + 1)) + min;
       await this.smsService.sendSms('+37477345522', activationLink.toString());
-      await this.acceptService.createUserAccept(
+      await this.userCodeService.createUserCode(
         user.id,
         activationLink.toString(),
       );
@@ -108,10 +123,7 @@ export class AuthService {
   }
 
   async loginCode(dto: loginCodeUserDto): Promise<LoginUserResponse> {
-    const verifyUser = await this.acceptService.findAndVerifyUserByAcceptId(
-      dto.code,
-    );
-    console.log(verifyUser, 'verifyUser');
+    const verifyUser = await this.verifyUserByCode(dto.code);
     if (!verifyUser.userId) {
       throw new HttpException(
         { message: 'code not valid' },
@@ -131,9 +143,28 @@ export class AuthService {
   }
 
   async confirmEmail(verifyId: string): Promise<any> {
-    const verifyUser =
-      await this.acceptService.findAndVerifyUserByAcceptId(verifyId);
+    const verifyUser = await this.verifyUserByCode(verifyId);
     return this.userService.verifyUser(verifyUser.userId);
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      if (!refreshToken) {
+        throw new UnauthorizedException({ message: 'Unauthorized' });
+      }
+      const userData = await this.jwtService.verify(refreshToken, {
+        secret: process.env.REFRESH_KEY,
+      });
+      if (!userData) {
+        throw new UnauthorizedException({ message: 'Unauthorized' });
+      }
+      const { accessToken, refreshToken: newRefreshToken } =
+        await this.generateToken(userData);
+      await this.saveToken(userData.id, newRefreshToken);
+      return { accessToken, refreshToken: newRefreshToken };
+    } catch (e) {
+      throw new UnauthorizedException({ message: 'Unauthorized' });
+    }
   }
 
   async saveToken(userId: number, refreshToken: string) {
@@ -173,5 +204,26 @@ export class AuthService {
     } catch (err) {
       throw err;
     }
+  }
+
+  async verifyUserByCode(verifyId: string): Promise<UserCode> {
+    const verifyUser = await UserCode.findOne({
+      where: {
+        code: verifyId,
+      },
+    });
+    if (!verifyUser) {
+      throw new HttpException(
+        { message: 'invalid code' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    await UserCode.destroy({
+      where: {
+        userId: verifyUser.userId,
+        code: verifyId,
+      },
+    });
+    return verifyUser;
   }
 }

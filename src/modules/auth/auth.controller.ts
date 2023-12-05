@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import {
@@ -16,7 +16,7 @@ import {
 } from './types';
 import { User } from '../../database/models';
 import { Public } from '../../decorators/public.decorator';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { loginCodeUserDto, loginUserDto } from '../users/dto/login-user.dto';
 import { BaseMessageResponseType } from '../../common/types/base.response-type';
 
@@ -53,6 +53,13 @@ export class AuthController {
     return this.authService.loginCode(dto);
   }
 
+  @Get('/refresh-token')
+  @ApiOkResponse({ type: LoginUserResponse })
+  async refreshToken(@Req() req: Request) {
+    const { refreshToken } = req.cookies;
+    return this.authService.refreshToken(refreshToken);
+  }
+
   @ApiExcludeEndpoint()
   @Get('/verify-email')
   @Public()
@@ -68,3 +75,7 @@ export class AuthController {
     }
   }
 }
+
+// @ApiHeader({
+//   name: 'refreshToken',
+// })

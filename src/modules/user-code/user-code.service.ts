@@ -1,5 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { UserAccept } from '../../database/models';
+import { Injectable } from '@nestjs/common';
+import { UserCode } from '../../database/models';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Op } from 'sequelize';
 import { MailService } from '../mail/mail.service';
@@ -7,51 +7,30 @@ import { v4 as uuid } from 'uuid';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
-export class AcceptService {
+export class UserCodeService {
   constructor(
     readonly userService: UsersService,
     readonly mailService: MailService,
   ) {}
 
-  async createUserAccept(userId: number, acceptId: string): Promise<void> {
-    await UserAccept.create({ userId, acceptId });
+  async createUserCode(userId: number, code: string): Promise<void> {
+    await UserCode.create({ userId, code });
   }
 
-  async findVerifyUserIdByUserId(userId: number): Promise<UserAccept> {
-    return UserAccept.findOne({
+  async findVerifyUserIdByUserId(userId: number): Promise<UserCode> {
+    return UserCode.findOne({
       where: {
         userId,
       },
     });
   }
 
-  async findVerifyUserIdByAcceptId(acceptId: string): Promise<UserAccept> {
-    return UserAccept.findOne({
+  async findVerifyUserIdByCode(code: string): Promise<UserCode> {
+    return UserCode.findOne({
       where: {
-        acceptId,
+        code,
       },
     });
-  }
-
-  async findAndVerifyUserByAcceptId(verifyId: string): Promise<UserAccept> {
-    const verifyUser = await UserAccept.findOne({
-      where: {
-        acceptId: verifyId,
-      },
-    });
-    if (!verifyUser) {
-      throw new HttpException(
-        { message: 'invalid code' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    await UserAccept.destroy({
-      where: {
-        userId: verifyUser.userId,
-        acceptId: verifyId,
-      },
-    });
-    return verifyUser;
   }
 
   //Crone
@@ -60,7 +39,7 @@ export class AcceptService {
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() - 1);
 
-    await UserAccept.findAll({
+    await UserCode.findAll({
       where: {
         createdAt: {
           [Op.lt]: currentDate,
@@ -75,12 +54,12 @@ export class AcceptService {
             user.email,
             activationLink,
           );
-          await this.createUserAccept(user.id, activationLink);
+          await this.createUserCode(user.id, activationLink);
 
-          return UserAccept.destroy({
+          return UserCode.destroy({
             where: {
               userId: el.userId,
-              acceptId: el.acceptId,
+              code: el.code,
             },
           });
         });
