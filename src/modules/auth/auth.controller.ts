@@ -1,10 +1,20 @@
-import { Body, Controller, Get, Post, Query, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import {
   ApiBody,
   ApiExcludeEndpoint,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import {
@@ -13,12 +23,20 @@ import {
   LoginUserResponse,
   RegisterUserRequest,
   RegisterUserResponse,
+  TokenResponse,
+  Verify2faRequest,
 } from './types';
 import { User } from '../../database/models';
 import { Public } from '../../decorators/public.decorator';
 import { Response, Request } from 'express';
 import { loginCodeUserDto, loginUserDto } from '../users/dto/login-user.dto';
-import { BaseMessageResponseType } from '../../common/types/base.response-type';
+import { VerifyTwoFADto } from './dto/verify-two-fa.dto';
+import { QRCodeType } from '../../common/types/base.response-type';
+import { Roles } from '../../decorators/roles.decorator';
+import { RoleEnum } from '../../common/enums';
+import { GetUser } from '../../decorators/user.decorator';
+import { RolesGuard } from '../../guards/role.guard';
+import { TwoFAAuthGuard } from '../../guards/2fa.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -39,13 +57,6 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @ApiBody({ type: LoginUserRequest })
-  @ApiOkResponse({ type: BaseMessageResponseType })
-  @Post('/login2fa')
-  async login2fa(@Body() dto: loginUserDto): Promise<BaseMessageResponseType> {
-    return this.authService.login2fa(dto);
-  }
-
   @ApiBody({ type: LoginCodeReques })
   @ApiOkResponse({ type: LoginUserResponse })
   @Post('/login/code')
@@ -53,8 +64,26 @@ export class AuthController {
     return this.authService.loginCode(dto);
   }
 
+  @UseGuards(TwoFAAuthGuard, RolesGuard)
+  @Get('/generate-qr-code')
+  @ApiOperation({ summary: 'Generate QR Code' })
+  @ApiOkResponse({ type: QRCodeType })
+  @Roles(RoleEnum.ADMIN)
+  async getQrCode(@GetUser() user: User): Promise<any> {
+    return this.authService.generateQrCode(user);
+  }
+
+  @ApiBody({ type: Verify2faRequest })
+  @ApiOkResponse({ type: TokenResponse })
+  @UseGuards(TwoFAAuthGuard, RolesGuard)
+  @Post('/verify-2fa')
+  @Roles(RoleEnum.ADMIN)
+  async verifyTwoFA(@Body() dto: VerifyTwoFADto): Promise<any> {
+    return this.authService.verifyTwoFA(dto);
+  }
+
   @Get('/refresh-token')
-  @ApiOkResponse({ type: LoginUserResponse })
+  @ApiOkResponse({ type: TokenResponse })
   async refreshToken(@Req() req: Request) {
     const { refreshToken } = req.cookies;
     return this.authService.refreshToken(refreshToken);
@@ -75,7 +104,3 @@ export class AuthController {
     }
   }
 }
-
-// @ApiHeader({
-//   name: 'refreshToken',
-// })

@@ -14,8 +14,11 @@ import { loginCodeUserDto, loginUserDto } from '../users/dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserResponse } from './types';
 import { SmsService } from '../sms/sms.service';
-import { BaseMessageResponseType } from '../../common/types/base.response-type';
+import * as process from 'process';
+import { RoleEnum } from '../../common/enums';
+import { VerifyTwoFADto } from './dto/verify-two-fa.dto';
 import { UserCodeService } from '../user-code/user-code.service';
+import { TwoFAService } from '../../services/2fa.service';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +28,7 @@ export class AuthService {
     readonly mailService: MailService,
     readonly smsService: SmsService,
     readonly jwtService: JwtService,
+    readonly twoFAService: TwoFAService,
   ) {}
 
   async registration(dto: CreateUserDto): Promise<User> {
@@ -49,88 +53,51 @@ export class AuthService {
   }
 
   async login(dto: loginUserDto): Promise<LoginUserResponse> {
-    const user = await this.userService.getUserByEmail(dto.email);
-    if (!user) {
-      throw new UnauthorizedException({
-        message: 'incorrect email or password',
-      });
-    }
+    const user = await this.checkValidateUser(dto);
+
+    const { accessToken, refreshToken } = await this.generateToken(user);
     if (user.isTwoFactorEnable) {
-      throw new HttpException(
-        { message: 'turn off 2fa verification' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    if (user.verified) {
-      const passwordEquals = await bcrypt.compare(dto.password, user.password);
-      if (!passwordEquals) {
-        throw new UnauthorizedException({
-          message: 'incorrect email or password',
-        });
+      if (user.roles.some((el) => el.role === RoleEnum.ADMIN)) {
+        return {
+          twoFAToken: this.jwtService.sign(
+            {
+              id: user.id,
+              email: user.email,
+            },
+            { expiresIn: '10m', secret: process.env.TWOFA_ACCESS_KEY },
+          ),
+        };
+      } else {
+        const min = 10000000;
+        const max = 99999999;
+        const activationLink =
+          Math.floor(Math.random() * (max - min + 1)) + min;
+        await this.smsService.sendSms(
+          '+37477345522',
+          activationLink.toString(),
+        );
+        await this.userCodeService.createUserCode(
+          user.id,
+          activationLink.toString(),
+        );
+        return { message: "The code has been sent to the user's phone number" };
       }
-      const { accessToken, refreshToken } = await this.generateToken(user);
+    } else {
       await this.saveToken(user.id, refreshToken);
-      if (user && passwordEquals) {
-        return { accessToken, refreshToken };
-      }
-
-      throw new UnauthorizedException({
-        message: 'incorrect email or password',
-      });
-    } else {
-      throw new HttpException(
-        { message: 'user not verified' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-
-  async login2fa(dto: loginUserDto): Promise<BaseMessageResponseType> {
-    const user = await this.userService.getUserByEmail(dto.email);
-    if (!user) {
-      throw new UnauthorizedException({
-        message: 'incorrect email or password',
-      });
-    }
-    if (!user.isTwoFactorEnable) {
-      throw new HttpException(
-        { message: 'turn on 2fa verification' },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    if (user.verified) {
-      const passwordEquals = await bcrypt.compare(dto.password, user.password);
-      if (!passwordEquals) {
-        throw new UnauthorizedException({
-          message: 'incorrect email or password',
-        });
-      }
-      const min = 10000000;
-      const max = 99999999;
-      const activationLink = Math.floor(Math.random() * (max - min + 1)) + min;
-      await this.smsService.sendSms('+37477345522', activationLink.toString());
-      await this.userCodeService.createUserCode(
-        user.id,
-        activationLink.toString(),
-      );
-      return { message: "The code has been sent to the user's phone number" };
-    } else {
-      throw new HttpException(
-        { message: 'user not found' },
-        HttpStatus.BAD_REQUEST,
-      );
+      return { accessToken, refreshToken };
     }
   }
 
   async loginCode(dto: loginCodeUserDto): Promise<LoginUserResponse> {
-    const verifyUser = await this.verifyUserByCode(dto.code);
-    if (!verifyUser.userId) {
+    const userCode = await this.userCodeService.findUserCodeByCode(dto.code);
+
+    if (!userCode) {
       throw new HttpException(
         { message: 'code not valid' },
         HttpStatus.BAD_REQUEST,
       );
     }
-    const user = await this.userService.getUserById(verifyUser.userId);
+    const user = await this.userService.getUserById(userCode.userId);
     if (!user) {
       throw new HttpException(
         { message: 'user not find' },
@@ -138,13 +105,46 @@ export class AuthService {
       );
     }
     const { accessToken, refreshToken } = await this.generateToken(user);
+    await UserCode.destroy({
+      where: {
+        userId: userCode.userId,
+        code: userCode.code,
+      },
+    });
     await this.saveToken(user.id, refreshToken);
     return { accessToken, refreshToken };
   }
 
-  async confirmEmail(verifyId: string): Promise<any> {
-    const verifyUser = await this.verifyUserByCode(verifyId);
-    return this.userService.verifyUser(verifyUser.userId);
+  async generateQrCode(user: User): Promise<any> {
+    const secret = await this.twoFAService.generateSecret(user.email);
+    const gToken = secret.otpauth_url;
+    await this.userCodeService.createUserCode(user.id, gToken);
+    const qrCode = await this.twoFAService.getQRCode(gToken);
+    return { qrCode };
+  }
+
+  async verifyTwoFA(dto: VerifyTwoFADto): Promise<any> {
+    const userCode = await this.userCodeService.findUserCodeByCode(dto.code);
+    if (userCode) {
+      const isVerified = await this.twoFAService.verifyQRCode(
+        userCode.code,
+        dto.code,
+      );
+      if (isVerified) {
+        const user = await this.userService.getUserById(userCode.userId);
+        const { accessToken, refreshToken } = await this.generateToken(user);
+        return { accessToken, refreshToken };
+      } else {
+        throw new HttpException(
+          { message: 'Code is invalid' },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+    throw new HttpException(
+      { message: 'user not found' },
+      HttpStatus.BAD_REQUEST,
+    );
   }
 
   async refreshToken(refreshToken: string) {
@@ -165,6 +165,17 @@ export class AuthService {
     } catch (e) {
       throw new UnauthorizedException({ message: 'Unauthorized' });
     }
+  }
+
+  async confirmEmail(verifyId: string): Promise<any> {
+    const userCode = await this.userCodeService.findUserCodeByCode(verifyId);
+    await UserCode.destroy({
+      where: {
+        userId: userCode.userId,
+        code: userCode.code,
+      },
+    });
+    return this.userService.verifyUser(userCode.id);
   }
 
   async saveToken(userId: number, refreshToken: string) {
@@ -206,24 +217,26 @@ export class AuthService {
     }
   }
 
-  async verifyUserByCode(verifyId: string): Promise<UserCode> {
-    const verifyUser = await UserCode.findOne({
-      where: {
-        code: verifyId,
-      },
-    });
-    if (!verifyUser) {
+  async checkValidateUser(dto: loginUserDto): Promise<User> {
+    const user = await this.userService.getUserByEmail(dto.email);
+    if (!user) {
+      throw new UnauthorizedException({
+        message: 'incorrect email or password',
+      });
+    }
+    if (user.verified) {
+      const passwordEquals = await bcrypt.compare(dto.password, user.password);
+      if (!passwordEquals) {
+        throw new UnauthorizedException({
+          message: 'incorrect email or password',
+        });
+      }
+      return user;
+    } else {
       throw new HttpException(
-        { message: 'invalid code' },
+        { message: 'user not verified' },
         HttpStatus.BAD_REQUEST,
       );
     }
-    await UserCode.destroy({
-      where: {
-        userId: verifyUser.userId,
-        code: verifyId,
-      },
-    });
-    return verifyUser;
   }
 }

@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../modules/users/users.service';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class TwoFAAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
@@ -21,14 +21,16 @@ export class AuthGuard implements CanActivate {
       const bearer = authHeader.split(' ')[0];
       const token = authHeader.split(' ')[1];
       const decodedUser = await this.jwtService.verify(token, {
-        secret: process.env.ACCESS_KEY,
+        secret: process.env.TWOFA_ACCESS_KEY,
       });
+      console.log(11);
 
       if (bearer !== 'Bearer' || !token) {
         throw new UnauthorizedException({ message: 'Unauthorized' });
       }
       if (decodedUser?.id) {
         const user = await this.userService.getUserById(decodedUser.id);
+        console.log(user, 'user');
         if (user) {
           req.user = user;
         } else {

@@ -12,6 +12,11 @@ export class BaseResponseType {
 }
 
 export class BaseMessageResponseType {
-  @ApiProperty({ example: 'ok' })
+  @ApiProperty({ example: 'some text' })
   message: string;
+}
+
+export class QRCodeType {
+  @ApiProperty({ example: 'data:image.png.abc......ew3ir==' })
+  qrCode: string;
 }

@@ -15,6 +15,7 @@ import { SuperAdminModule } from './modules/super-admin/super-admin.module';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
+import { UserCodeModule } from './modules/user-code/user-code.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthModule } from './modules/auth/auth.module';
     AttachmentModule,
     SuperAdminModule,
     AuthModule,
+    UserCodeModule,
   ],
   controllers: [AppController],
   providers: [

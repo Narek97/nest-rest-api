@@ -4,11 +4,12 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { MailModule } from '../mail/mail.module';
 import { SmsModule } from '../sms/sms.module';
-import { UserCode } from '../user-code/user-code.module';
+import { UserCodeModule } from '../user-code/user-code.module';
+import { TwoFAService } from '../../services/2fa.service';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService],
-  imports: [UsersModule, UserCode, MailModule, SmsModule],
+  providers: [AuthService, TwoFAService],
+  imports: [UsersModule, MailModule, SmsModule, UserCodeModule],
 })
 export class AuthModule {}

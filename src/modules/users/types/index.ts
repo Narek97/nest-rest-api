@@ -20,3 +20,8 @@ export class GetMeResponse extends BaseResponseType {
   @ApiProperty({ example: false })
   verified: boolean;
 }
+
+export class ToggleTwoFactorVerificationResponse {
+  @ApiProperty({ example: true })
+  isEnable: boolean;
+}
