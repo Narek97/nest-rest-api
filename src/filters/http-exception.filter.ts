@@ -6,27 +6,29 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { ErrorLogsService } from '../modules/error-logs/error-logs.service';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  // constructor(private readonly errorLogsService: ErrorLogsService) {}
+  constructor(private readonly errorLogsService: ErrorLogsService) {}
 
   async catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = response.statusCode ?? exception?.getStatus();
-    const message = exception?.message || 'Internal server error';
-    const type: any = host.getType();
+    const message =
+      exception?.response?.message ||
+      exception?.message ||
+      'Internal server error';
+
     try {
-      // await this.errorLogsService.add({
-      //   status,
-      //   error: exception,
-      //   message: exception?.response?.message || exception?.message,
-      //   query: exception?.query,
-      //   requestMethod: request?.method,
-      //   requestUrl: request?.url,
-      // });
+      await this.errorLogsService.addErrorLogs({
+        status,
+        message,
+        path: request.url,
+        type: request.method,
+      });
       if (status == 409 || status == 422 || status == 401 || status === 403) {
         return response.status(status).json(exception.response);
       }

@@ -22,7 +22,7 @@ export class SmsService {
       });
     } catch (err) {
       console.log(err);
-      throw new BadRequestException('Twilio Error ... ', err);
+      throw new BadRequestException({ message: 'Twilio Error ... ' }, err);
     }
   }
 }

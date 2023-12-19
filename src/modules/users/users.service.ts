@@ -28,6 +28,9 @@ export class UsersService {
     return User.findOne({
       where: { email },
       include: { model: Role },
+      logging: (sql) => {
+        console.log(sql, 'sql');
+      },
     });
   }
 
@@ -46,7 +49,10 @@ export class UsersService {
   async verifyUser(id: number): Promise<any> {
     const user = await this.getUserById(id);
     if (!user) {
-      throw new HttpException('user not found', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        { message: 'user not found' },
+        HttpStatus.BAD_REQUEST,
+      );
     }
     return User.update(
       {

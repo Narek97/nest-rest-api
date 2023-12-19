@@ -10,6 +10,7 @@ import { Attachment } from './models/attachment.model';
 import { UserToken } from './models/user-token.model';
 import { UserRole } from './models/user-role.model';
 import { UserWorkspaces } from './models/user-workspace.model';
+import { ErrorLogs } from './models/error-logs.model';
 
 export {
   Company,
@@ -24,4 +25,5 @@ export {
   Initiatives,
   SuperAdmin,
   Attachment,
+  ErrorLogs,
 };

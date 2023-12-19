@@ -4,7 +4,7 @@ import { Column, DataType, Table } from 'sequelize-typescript';
 @Table({ tableName: 'attachment' })
 export class Attachment extends BaseModel<Attachment, null> {
   @Column({ type: DataType.INTEGER })
-  useId: number;
+  userId: number;
 
   @Column({ type: DataType.INTEGER })
   relatedId: number;

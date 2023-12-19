@@ -14,6 +14,7 @@ import {
   UserToken,
   UserRole,
   UserWorkspaces,
+  ErrorLogs,
 } from './models';
 
 export const DB = new Sequelize(databaseConfig[process.env.NODE_ENV]);
@@ -34,6 +35,7 @@ export const databaseProviders = {
       UserToken,
       UserRole,
       UserWorkspaces,
+      ErrorLogs,
     ]);
     await DB.sync();
     return DB;

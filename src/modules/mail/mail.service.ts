@@ -22,7 +22,7 @@ export class MailService {
       };
       return this.sendgridService.send(mail);
     } catch (err) {
-      throw new BadRequestException('SendGrid Error ... ', err);
+      throw new BadRequestException({ message: 'SendGrid Error ... ' }, err);
     }
   }
 }

@@ -1,4 +1,10 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateAttachmentDto } from './create-attachment.dto';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class UpdateAttachmentDto extends PartialType(CreateAttachmentDto) {}
+export class UpdateAttachmentDto {
+  @IsNotEmpty()
+  @IsString()
+  folder: string;
+
+  @IsOptional()
+  relatedId: number;
+}

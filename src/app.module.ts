@@ -16,6 +16,8 @@ import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserCodeModule } from './modules/user-code/user-code.module';
+import { ErrorLogsModule } from './modules/error-logs/error-logs.module';
+import { ErrorLogsService } from './modules/error-logs/error-logs.service';
 
 @Module({
   imports: [
@@ -31,10 +33,12 @@ import { UserCodeModule } from './modules/user-code/user-code.module';
     SuperAdminModule,
     AuthModule,
     UserCodeModule,
+    ErrorLogsModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    ErrorLogsService,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })
