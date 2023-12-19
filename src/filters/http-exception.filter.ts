@@ -1,16 +1,10 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
 import { Response } from 'express';
-import { ErrorLogsService } from '../modules/error-logs/error-logs.service';
+import { LogsService } from '../modules/logs/logs.service';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(private readonly errorLogsService: ErrorLogsService) {}
+  constructor(private readonly errorLogsService: LogsService) {}
 
   async catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

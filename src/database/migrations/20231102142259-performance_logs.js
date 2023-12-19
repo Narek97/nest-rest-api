@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    return queryInterface.createTable('logs', {
+    return queryInterface.createTable('performance-logs', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -11,21 +11,33 @@ module.exports = {
         unique: true,
         primaryKey: true,
       },
-      status: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      message: {
-        type: Sequelize.STRING,
+      user: {
+        type: Sequelize.JSON,
         allowNull: false,
       },
       path: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      type: {
+      method: {
         type: Sequelize.STRING,
         allowNull: false,
+      },
+      responseTime: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      payloadSize: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
+      },
+      queryCount: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      sqlRowQueries: {
+        type: Sequelize.JSON,
+        allowNull: true,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -39,6 +51,6 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    return queryInterface.dropTable('logs');
+    return queryInterface.dropTable('performance-logs');
   },
 };

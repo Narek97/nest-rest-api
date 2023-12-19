@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Request } from '@nestjs/common';
 import { Role, User, UserRole } from '../../database/models';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RolesService } from '../roles/roles.service';
@@ -66,8 +66,23 @@ export class UsersService {
     );
   }
 
-  async getMe(id: number): Promise<User> {
-    return this.getUserById(id);
+  async getUserById1(id: number, sqlRowQueries: any): Promise<User> {
+    return User.findByPk(id, {
+      include: {
+        model: Role,
+        attributes: {
+          exclude: [],
+        },
+      },
+      attributes: { exclude: ['password'] },
+      logging: (sql) => {
+        sqlRowQueries.push(sql);
+      },
+    });
+  }
+
+  async getMe(id: number, sqlRowQueries: string[]): Promise<User> {
+    return await this.getUserById1(id, sqlRowQueries);
   }
 
   async toggleTwoFactorVerification(

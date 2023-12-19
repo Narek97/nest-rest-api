@@ -1,14 +1,5 @@
 import { BaseModel } from '../base.model';
-import {
-  Column,
-  DataType,
-  Table,
-  BelongsTo,
-  BelongsToMany,
-} from 'sequelize-typescript';
-import { Organisation } from './organisation.model';
-import { Workspace } from './worksapace.model';
-import { Role } from './role.model';
+import { Column, DataType, Table } from 'sequelize-typescript';
 
 @Table({ tableName: 'error-logs', createdAt: false, updatedAt: false })
 export class ErrorLogs extends BaseModel<ErrorLogs, null> {

@@ -9,8 +9,10 @@ import { JwtConfigOptions } from '../config/jwt-config';
 import { MailModule } from '../modules/mail/mail.module';
 import { SmsModule } from '../modules/sms/sms.module';
 import { AWSS3Service } from '../services/aws-s3.service';
+import { LogsModule } from '../modules/logs/logs.module';
+import { LogsService } from '../modules/logs/logs.service';
 
-const providers = [AWSS3Service];
+const providers = [AWSS3Service, LogsService];
 
 const imports: Array<
   Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference
@@ -22,6 +24,7 @@ const imports: Array<
   JwtModule.register(JwtConfigOptions),
   MailModule,
   SmsModule,
+  LogsModule,
 ];
 
 @Global()
