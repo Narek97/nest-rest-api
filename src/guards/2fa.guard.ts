@@ -5,14 +5,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../modules/users/users.service';
+import { Role, User } from '../database/models';
 
 @Injectable()
 export class TwoFAAuthGuard implements CanActivate {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly userService: UsersService,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<any> {
     const req = context.switchToHttp().getRequest();
@@ -29,8 +26,15 @@ export class TwoFAAuthGuard implements CanActivate {
         throw new UnauthorizedException({ message: 'Unauthorized' });
       }
       if (decodedUser?.id) {
-        const user = await this.userService.getUserById(decodedUser.id);
-        console.log(user, 'user');
+        const user = await User.findByPk(decodedUser.id, {
+          include: {
+            model: Role,
+            attributes: {
+              exclude: [],
+            },
+          },
+          attributes: { exclude: ['password'] },
+        });
         if (user) {
           req.user = user;
         } else {

@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Patch,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { GetUser } from '../../decorators/user.decorator';
@@ -24,10 +17,7 @@ export class UsersController {
 
   @Get('/me')
   @ApiOkResponse({ type: GetMeResponse })
-  getMe(
-    @GetUser() user: User,
-    @Request() { sqlRowQueries }: any,
-  ): Promise<User> {
+  getMe(@GetUser() user: User, @Req() { sqlRowQueries }: any): Promise<User> {
     return this.usersService.getMe(user.id, sqlRowQueries);
   }
 
@@ -37,7 +27,12 @@ export class UsersController {
   ToggleTwoFactorVerification(
     @GetUser() user: User,
     @Body() dto: UpdateUserTwoFactorVerification,
+    @Req() { sqlRowQueries }: any,
   ): Promise<BaseMessageResponseType> {
-    return this.usersService.toggleTwoFactorVerification(user, dto);
+    return this.usersService.toggleTwoFactorVerification(
+      user,
+      dto,
+      sqlRowQueries,
+    );
   }
 }

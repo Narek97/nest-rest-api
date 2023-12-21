@@ -46,22 +46,31 @@ export class AuthController {
   @ApiBody({ type: RegisterUserRequest })
   @ApiOkResponse({ type: RegisterUserResponse })
   @Post('/registration')
-  async registration(@Body() dto: CreateUserDto): Promise<User> {
-    return this.authService.registration(dto);
+  async registration(
+    @Body() dto: CreateUserDto,
+    @Req() { sqlRowQueries }: any,
+  ): Promise<User> {
+    return this.authService.registration(dto, sqlRowQueries);
   }
 
   @ApiBody({ type: LoginUserRequest })
   @ApiOkResponse({ type: LoginUserResponse })
   @Post('/login')
-  async login(@Body() dto: loginUserDto): Promise<LoginUserResponse> {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: loginUserDto,
+    @Req() { sqlRowQueries }: any,
+  ): Promise<LoginUserResponse> {
+    return this.authService.login(dto, sqlRowQueries);
   }
 
   @ApiBody({ type: LoginCodeReques })
   @ApiOkResponse({ type: LoginUserResponse })
   @Post('/login/code')
-  async loginCode(@Body() dto: loginCodeUserDto): Promise<LoginUserResponse> {
-    return this.authService.loginCode(dto);
+  async loginCode(
+    @Body() dto: loginCodeUserDto,
+    @Req() { sqlRowQueries }: any,
+  ): Promise<LoginUserResponse> {
+    return this.authService.loginCode(dto, sqlRowQueries);
   }
 
   @UseGuards(TwoFAAuthGuard, RolesGuard)
@@ -69,8 +78,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Generate QR Code' })
   @ApiOkResponse({ type: QRCodeType })
   @Roles(RoleEnum.ADMIN)
-  async getQrCode(@GetUser() user: User): Promise<any> {
-    return this.authService.generateQrCode(user);
+  async getQrCode(
+    @GetUser() user: User,
+    @Req() { sqlRowQueries }: any,
+  ): Promise<any> {
+    return this.authService.generateQrCode(user, sqlRowQueries);
   }
 
   @ApiBody({ type: Verify2faRequest })
@@ -78,15 +90,18 @@ export class AuthController {
   @UseGuards(TwoFAAuthGuard, RolesGuard)
   @Post('/verify-2fa')
   @Roles(RoleEnum.ADMIN)
-  async verifyTwoFA(@Body() dto: VerifyTwoFADto): Promise<any> {
-    return this.authService.verifyTwoFA(dto);
+  async verifyTwoFA(
+    @Body() dto: VerifyTwoFADto,
+    @Req() { sqlRowQueries }: any,
+  ): Promise<any> {
+    return this.authService.verifyTwoFA(dto, sqlRowQueries);
   }
 
   @Get('/refresh-token')
   @ApiOkResponse({ type: TokenResponse })
-  async refreshToken(@Req() req: Request) {
+  async refreshToken(@Req() req: Request, @Req() { sqlRowQueries }: any) {
     const { refreshToken } = req.cookies;
-    return this.authService.refreshToken(refreshToken);
+    return this.authService.refreshToken(refreshToken, sqlRowQueries);
   }
 
   @ApiExcludeEndpoint()
@@ -94,10 +109,11 @@ export class AuthController {
   @Public()
   async confirmEmail(
     @Res() res: Response,
+    @Req() { sqlRowQueries }: any,
     @Query('verifyId') verifyId: string,
   ) {
     try {
-      await this.authService.confirmEmail(verifyId);
+      await this.authService.confirmEmail(verifyId, sqlRowQueries);
       res.redirect(`${process.env.APP_URL}/login`);
     } catch (error) {
       res.redirect(`${process.env.APP_URL}/login?verify=false`);

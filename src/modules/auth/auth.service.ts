@@ -31,8 +31,14 @@ export class AuthService {
     readonly twoFAService: TwoFAService,
   ) {}
 
-  async registration(dto: CreateUserDto): Promise<User> {
-    const candidate = await this.userService.getUserByEmail(dto.email);
+  async registration(
+    dto: CreateUserDto,
+    sqlRowQueries: string[],
+  ): Promise<User> {
+    const candidate = await this.userService.getUserByEmail(
+      dto.email,
+      sqlRowQueries,
+    );
     if (candidate) {
       throw new HttpException(
         { message: ['user already exist'] },
@@ -41,19 +47,29 @@ export class AuthService {
     }
 
     const hashPassword = await bcrypt.hash(dto.password, 5);
-    const user = await this.userService.createUser({
-      ...dto,
-      password: hashPassword,
-    });
+    const user = await this.userService.createUser(
+      {
+        ...dto,
+        password: hashPassword,
+      },
+      sqlRowQueries,
+    );
     const activationLink = uuid();
     await this.mailService.sendSignupVerifyEmail(user.email, activationLink);
-    await this.userCodeService.createUserCode(user.id, activationLink);
+    await this.userCodeService.createUserCode(
+      user.id,
+      activationLink,
+      sqlRowQueries,
+    );
 
     return user;
   }
 
-  async login(dto: loginUserDto): Promise<LoginUserResponse> {
-    const user = await this.checkValidateUser(dto);
+  async login(
+    dto: loginUserDto,
+    sqlRowQueries: string[],
+  ): Promise<LoginUserResponse> {
+    const user = await this.checkValidateUser(dto, sqlRowQueries);
 
     const { accessToken, refreshToken } = await this.generateToken(user);
     if (user.isTwoFactorEnable) {
@@ -79,17 +95,24 @@ export class AuthService {
         await this.userCodeService.createUserCode(
           user.id,
           activationLink.toString(),
+          sqlRowQueries,
         );
         return { message: "The code has been sent to the user's phone number" };
       }
     } else {
-      await this.saveToken(user.id, refreshToken);
+      await this.saveToken(user.id, refreshToken, sqlRowQueries);
       return { accessToken, refreshToken };
     }
   }
 
-  async loginCode(dto: loginCodeUserDto): Promise<LoginUserResponse> {
-    const userCode = await this.userCodeService.findUserCodeByCode(dto.code);
+  async loginCode(
+    dto: loginCodeUserDto,
+    sqlRowQueries: string[],
+  ): Promise<LoginUserResponse> {
+    const userCode = await this.userCodeService.findUserCodeByCode(
+      dto.code,
+      sqlRowQueries,
+    );
 
     if (!userCode) {
       throw new HttpException(
@@ -97,7 +120,10 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const user = await this.userService.getUserById(userCode.userId);
+    const user = await this.userService.getUserById(
+      userCode.userId,
+      sqlRowQueries,
+    );
     if (!user) {
       throw new HttpException(
         { message: 'user not find' },
@@ -110,28 +136,40 @@ export class AuthService {
         userId: userCode.userId,
         code: userCode.code,
       },
+      logging: (sql) => {
+        sqlRowQueries.push(sql);
+      },
     });
-    await this.saveToken(user.id, refreshToken);
+    await this.saveToken(user.id, refreshToken, sqlRowQueries);
     return { accessToken, refreshToken };
   }
 
-  async generateQrCode(user: User): Promise<any> {
+  async generateQrCode(user: User, sqlRowQueries: string[]): Promise<any> {
     const secret = await this.twoFAService.generateSecret(user.email);
     const gToken = secret.otpauth_url;
-    await this.userCodeService.createUserCode(user.id, gToken);
+    await this.userCodeService.createUserCode(user.id, gToken, sqlRowQueries);
     const qrCode = await this.twoFAService.getQRCode(gToken);
     return { qrCode };
   }
 
-  async verifyTwoFA(dto: VerifyTwoFADto): Promise<any> {
-    const userCode = await this.userCodeService.findUserCodeByCode(dto.code);
+  async verifyTwoFA(
+    dto: VerifyTwoFADto,
+    sqlRowQueries: string[],
+  ): Promise<any> {
+    const userCode = await this.userCodeService.findUserCodeByCode(
+      dto.code,
+      sqlRowQueries,
+    );
     if (userCode) {
       const isVerified = await this.twoFAService.verifyQRCode(
         userCode.code,
         dto.code,
       );
       if (isVerified) {
-        const user = await this.userService.getUserById(userCode.userId);
+        const user = await this.userService.getUserById(
+          userCode.userId,
+          sqlRowQueries,
+        );
         const { accessToken, refreshToken } = await this.generateToken(user);
         return { accessToken, refreshToken };
       } else {
@@ -147,7 +185,7 @@ export class AuthService {
     );
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(refreshToken: string, sqlRowQueries: string[]) {
     try {
       if (!refreshToken) {
         throw new UnauthorizedException({ message: 'Unauthorized' });
@@ -160,25 +198,35 @@ export class AuthService {
       }
       const { accessToken, refreshToken: newRefreshToken } =
         await this.generateToken(userData);
-      await this.saveToken(userData.id, newRefreshToken);
+      await this.saveToken(userData.id, newRefreshToken, sqlRowQueries);
       return { accessToken, refreshToken: newRefreshToken };
     } catch (e) {
       throw new UnauthorizedException({ message: 'Unauthorized' });
     }
   }
 
-  async confirmEmail(verifyId: string): Promise<any> {
-    const userCode = await this.userCodeService.findUserCodeByCode(verifyId);
+  async confirmEmail(verifyId: string, sqlRowQueries: string[]): Promise<any> {
+    const userCode = await this.userCodeService.findUserCodeByCode(
+      verifyId,
+      sqlRowQueries,
+    );
     await UserCode.destroy({
       where: {
         userId: userCode.userId,
         code: userCode.code,
       },
+      logging: (sql) => {
+        sqlRowQueries.push(sql);
+      },
     });
-    return this.userService.verifyUser(userCode.id);
+    return this.userService.verifyUser(userCode.id, sqlRowQueries);
   }
 
-  async saveToken(userId: number, refreshToken: string) {
+  async saveToken(
+    userId: number,
+    refreshToken: string,
+    sqlRowQueries: string[],
+  ) {
     const token = await UserToken.findOne({
       where: {
         userId,
@@ -188,10 +236,17 @@ export class AuthService {
       token.refreshToken = refreshToken;
       return token.save();
     }
-    return UserToken.create({
-      userId,
-      refreshToken,
-    });
+    return UserToken.create(
+      {
+        userId,
+        refreshToken,
+      },
+      {
+        logging: (sql) => {
+          sqlRowQueries.push(sql);
+        },
+      },
+    );
   }
 
   async generateToken(user: User) {
@@ -217,8 +272,14 @@ export class AuthService {
     }
   }
 
-  async checkValidateUser(dto: loginUserDto): Promise<User> {
-    const user = await this.userService.getUserByEmail(dto.email);
+  async checkValidateUser(
+    dto: loginUserDto,
+    sqlRowQueries: string[],
+  ): Promise<User> {
+    const user = await this.userService.getUserByEmail(
+      dto.email,
+      sqlRowQueries,
+    );
     if (!user) {
       throw new UnauthorizedException({
         message: 'incorrect email or password',

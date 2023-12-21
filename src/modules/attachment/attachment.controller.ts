@@ -4,17 +4,14 @@ import {
   Delete,
   Param,
   Post,
+  Req,
   UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AttachmentService } from './attachment.service';
-import {
-  AnyFilesInterceptor,
-  FileInterceptor,
-  FilesInterceptor,
-} from '@nestjs/platform-express';
+import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../../guards/auth.guard';
 import { GetUser } from '../../decorators/user.decorator';
 import { Attachment, User } from '../../database/models';
@@ -37,8 +34,14 @@ export class AttachmentController {
     @GetUser() user: User,
     @UploadedFile() file: Express.Multer.File,
     @Body() data: UpdateAttachmentDto,
+    @Req() { sqlRowQueries }: any,
   ): Promise<Attachment> {
-    return this.attachmentService.uploadAttachment(data, file, user);
+    return this.attachmentService.uploadAttachment(
+      data,
+      file,
+      user,
+      sqlRowQueries,
+    );
   }
 
   @Post('/multi-upload')
@@ -51,7 +54,8 @@ export class AttachmentController {
   @UseInterceptors(FileInterceptor('file'))
   async deleteUserFile(
     @Param('id') id: number,
+    @Req() { sqlRowQueries }: any,
   ): Promise<{ id: number; deleted: boolean }> {
-    return this.attachmentService.deleteFile(id);
+    return this.attachmentService.deleteFile(id, sqlRowQueries);
   }
 }

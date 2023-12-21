@@ -16,25 +16,36 @@ export class AttachmentService {
     data: UpdateAttachmentDto,
     file: Express.Multer.File,
     user: User,
+    sqlRowQueries: string[],
   ): Promise<Attachment> {
     try {
       const { folder, relatedId = null } = data;
       const { originalname } = file;
       const key = `${folder}/${user.id}/${originalname}-${uuid()}`;
       const uploadFile = await this.s3Service.upload(file, key);
-      return await Attachment.create({
-        userId: user.id,
-        folder,
-        relatedId,
-        url: uploadFile.Location,
-        key,
-      });
+      return await Attachment.create(
+        {
+          userId: user.id,
+          folder,
+          relatedId,
+          url: uploadFile.Location,
+          key,
+        },
+        {
+          logging: (sql) => {
+            sqlRowQueries.push(sql);
+          },
+        },
+      );
     } catch (err) {
       throw new BadRequestException({ message: 'AWS Error ...' }, err);
     }
   }
 
-  async deleteFile(id: number): Promise<{ id: number; deleted: boolean }> {
+  async deleteFile(
+    id: number,
+    sqlRowQueries: string[],
+  ): Promise<{ id: number; deleted: boolean }> {
     try {
       const file = await Attachment.findByPk(id);
       if (!file) {
@@ -47,6 +58,9 @@ export class AttachmentService {
       await Attachment.destroy({
         where: {
           id,
+        },
+        logging: (sql) => {
+          sqlRowQueries.push(sql);
         },
       });
       return {

@@ -13,14 +13,31 @@ export class UserCodeService {
     readonly userService: UsersService,
   ) {}
 
-  async createUserCode(userId: number, code: string): Promise<void> {
-    await UserCode.create({ userId, code });
+  async createUserCode(
+    userId: number,
+    code: string,
+    sqlRowQueries: string[],
+  ): Promise<void> {
+    await UserCode.create(
+      { userId, code },
+      {
+        logging: (sql) => {
+          sqlRowQueries.push(sql);
+        },
+      },
+    );
   }
 
-  async findUserCodeByCode(code: string): Promise<UserCode> {
+  async findUserCodeByCode(
+    code: string,
+    sqlRowQueries: string[],
+  ): Promise<UserCode> {
     return UserCode.findOne({
       where: {
         code,
+      },
+      logging: (sql) => {
+        sqlRowQueries.push(sql);
       },
     });
   }
