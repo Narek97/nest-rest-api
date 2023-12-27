@@ -9,11 +9,13 @@ import {
   Role,
   Initiatives,
   SuperAdmin,
-  UserAccept,
+  UserCode,
   Attachment,
   UserToken,
   UserRole,
   UserWorkspaces,
+  ErrorLogs,
+  PerformanceLogs,
 } from './models';
 
 export const DB = new Sequelize(databaseConfig[process.env.NODE_ENV]);
@@ -26,14 +28,16 @@ export const databaseProviders = {
       Organisation,
       Workspace,
       User,
-      UserAccept,
       Role,
       Initiatives,
       SuperAdmin,
+      UserCode,
       Attachment,
       UserToken,
       UserRole,
       UserWorkspaces,
+      ErrorLogs,
+      PerformanceLogs,
     ]);
     await DB.sync();
     return DB;

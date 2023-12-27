@@ -1,26 +1,74 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAttachmentDto } from './dto/create-attachment.dto';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { UpdateAttachmentDto } from './dto/update-attachment.dto';
+import { Attachment, User } from '../../database/models';
+import { v4 as uuid } from 'uuid';
+import { AWSS3Service } from '../../services/aws-s3.service';
 
 @Injectable()
 export class AttachmentService {
-  // create(createAttachmentDto: CreateAttachmentDto) {
-  //   return 'This action adds a new attachment';
-  // }
-  //
-  // findAll() {
-  //   return `This action returns all attachment`;
-  // }
-  //
-  // findOne(id: number) {
-  //   return `This action returns a #${id} attachment`;
-  // }
-  //
-  // update(id: number, updateAttachmentDto: UpdateAttachmentDto) {
-  //   return `This action updates a #${id} attachment`;
-  // }
-  //
-  // remove(id: number) {
-  //   return `This action removes a #${id} attachment`;
-  // }
+  constructor(private readonly s3Service: AWSS3Service) {}
+  async uploadAttachment(
+    data: UpdateAttachmentDto,
+    file: Express.Multer.File,
+    user: User,
+    sqlRowQueries: string[],
+  ): Promise<Attachment> {
+    try {
+      const { folder, relatedId = null } = data;
+      const { originalname } = file;
+      const key = `${folder}/${user.id}/${originalname}-${uuid()}`;
+      const uploadFile = await this.s3Service.upload(file, key);
+      return await Attachment.create(
+        {
+          userId: user.id,
+          folder,
+          relatedId,
+          url: uploadFile.Location,
+          key,
+        },
+        {
+          logging: (sql) => {
+            sqlRowQueries.push(sql);
+          },
+        },
+      );
+    } catch (err) {
+      throw new BadRequestException({ message: 'AWS Error ...' }, err);
+    }
+  }
+
+  async deleteFile(
+    id: number,
+    sqlRowQueries: string[],
+  ): Promise<{ id: number; deleted: boolean }> {
+    try {
+      const file = await Attachment.findByPk(id);
+      if (!file) {
+        throw new HttpException(
+          { message: 'file not found' },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      await this.s3Service.delete(file.key);
+      await Attachment.destroy({
+        where: {
+          id,
+        },
+        logging: (sql) => {
+          sqlRowQueries.push(sql);
+        },
+      });
+      return {
+        id: file.id,
+        deleted: true,
+      };
+    } catch (err) {
+      throw new BadRequestException({ message: 'AWS Error ...' }, err);
+    }
+  }
 }

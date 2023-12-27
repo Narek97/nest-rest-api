@@ -14,6 +14,8 @@ interface IDatabaseConfigAttributes {
   logging: typeof console.log | boolean;
   define: ModelOptions;
   acquire: number;
+  autoLoadModels: boolean;
+  synchronize: boolean;
 }
 
 interface IDatabaseConfig {
@@ -31,6 +33,8 @@ export const databaseConfig: IDatabaseConfig = {
     host: process.env.MYSQL_HOST,
     port: process.env.MYSQL_PORT,
     logging: false,
+    autoLoadModels: true,
+    synchronize: false,
     define: { timestamps: true },
     acquire: 100 * 1000, // 100 seconds
   },
@@ -41,7 +45,9 @@ export const databaseConfig: IDatabaseConfig = {
     database: process.env.MYSQL_DATABASE,
     host: process.env.MYSQL_HOST,
     port: process.env.MYSQL_PORT,
-    logging: console.log,
+    logging: false,
+    autoLoadModels: true,
+    synchronize: false,
     define: { timestamps: true },
     acquire: 100 * 1000, // 100 seconds
   },
@@ -53,6 +59,8 @@ export const databaseConfig: IDatabaseConfig = {
     host: process.env.MYSQL_HOST,
     port: process.env.MYSQL_PORT,
     logging: false,
+    autoLoadModels: true,
+    synchronize: false,
     define: { timestamps: true },
     acquire: 100 * 1000, // 100 seconds
   },

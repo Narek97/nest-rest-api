@@ -7,8 +7,8 @@ export class Initiatives extends BaseModel<Initiatives, null> {
   @Column({ type: DataType.STRING, allowNull: false })
   name: string;
 
-  @Column({ type: DataType.INTEGER, allowNull: false })
-  feedbackId: number;
+  @Column({ type: DataType.INTEGER, allowNull: true })
+  workspaceId: number;
 
   @Column({ type: DataType.INTEGER, allowNull: false })
   orgId: number;

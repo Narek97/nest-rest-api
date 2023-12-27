@@ -30,6 +30,9 @@ export class User extends BaseModel<User, null> {
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
   verified: boolean;
 
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  isTwoFactorEnable: boolean;
+
   @Column({ type: DataType.INTEGER })
   orgId: number;
 

@@ -7,8 +7,8 @@ import {
 } from 'sequelize-typescript';
 import { User } from './user.model';
 
-@Table({ tableName: 'user_accept', createdAt: false, updatedAt: false })
-export class UserAccept extends Model<UserAccept> {
+@Table({ tableName: 'user_code', createdAt: false, updatedAt: false })
+export class UserCode extends Model<UserCode> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -21,7 +21,7 @@ export class UserAccept extends Model<UserAccept> {
   userId: number;
 
   @Column({ type: DataType.STRING, allowNull: false })
-  acceptId: string;
+  code: string;
 
   ///////////////////////////////// Relations /////////////////////////////////
   @BelongsTo(() => User, {
