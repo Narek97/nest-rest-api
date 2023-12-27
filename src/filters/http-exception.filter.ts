@@ -19,7 +19,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     try {
       await this.errorLogsService.addErrorLogs({
         status,
-        message,
+        message: Array.isArray(message) ? message.join() : message,
         path: request.url,
         type: request.method,
       });
