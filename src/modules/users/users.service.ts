@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Role, User, UserRole } from '../../database/models';
 import { CreateUserDto } from './dto/create-user.dto';
 import { RolesService } from '../roles/roles.service';
@@ -66,10 +71,7 @@ export class UsersService {
   async verifyUser(id: number, sqlRowQueries: string[]): Promise<any> {
     const user = await this.getUserById(id, sqlRowQueries);
     if (!user) {
-      throw new HttpException(
-        { message: 'user not found' },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new NotFoundException({ message: 'user not found' });
     }
     return User.update(
       {

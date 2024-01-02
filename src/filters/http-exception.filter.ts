@@ -41,16 +41,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
               'Something went wrong (Server Error, HttpExceptionFilter)',
           );
       }
-      return response.status(status).json(exception.response);
+      throw { response: message };
+      // return response.status(status).json(exception.response);
     } catch (err) {
-      // await this.errorLogsService.add({
-      //   status,
-      //   error: err,
-      //   message: err?.response?.message || err?.message,
-      //   query: err?.query,
-      //   requestMethod: request?.method,
-      //   requestUrl: request?.url,
-      // });
       if (response) {
         response
           .status(500)
@@ -59,10 +52,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
               'Something went wrong (Server Error, HttpExceptionFilter last catch)',
           );
       } else {
-        return (
+        return [
           err?.response ||
-          'Something went wrong (Server Error, HttpExceptionFilter last catch)'
-        );
+            'Something went wrong (Server Error, HttpExceptionFilter last catch)',
+        ];
       }
     }
   }

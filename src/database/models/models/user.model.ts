@@ -5,10 +5,12 @@ import {
   Table,
   BelongsTo,
   BelongsToMany,
+  HasMany,
 } from 'sequelize-typescript';
 import { Organisation } from './organisation.model';
 import { Workspace } from './worksapace.model';
 import { Role } from './role.model';
+import { Tasks } from './tasks.model';
 
 @Table({ tableName: 'users', createdAt: false, updatedAt: false })
 export class User extends BaseModel<User, null> {
@@ -41,6 +43,9 @@ export class User extends BaseModel<User, null> {
     foreignKey: 'orgId',
   })
   organisation: Organisation;
+
+  @HasMany(() => Tasks, { foreignKey: 'userId' })
+  tasks: Tasks[];
 
   @BelongsToMany(() => Workspace, 'user_workspace', 'userId', 'workspaceId')
   workspaces: Workspace[];
