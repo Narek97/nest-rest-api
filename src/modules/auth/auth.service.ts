@@ -54,6 +54,8 @@ export class AuthService {
       },
       sqlRowQueries,
     );
+
+
     const activationLink = uuid();
     await this.mailService.sendSignupVerifyEmail(user.email, activationLink);
     await this.userCodeService.createUserCode(

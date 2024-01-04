@@ -21,6 +21,7 @@ export class TransactionInterceptor implements NestInterceptor {
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
+    // Before
     const httpContext = context.switchToHttp();
     const req = httpContext.getRequest();
 
@@ -37,7 +38,7 @@ export class TransactionInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(async () => {
-        //IF committed already will throw an arrow
+        //After
         if (!isCommitted) {
           await transaction.commit();
         }

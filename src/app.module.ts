@@ -17,6 +17,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserCodeModule } from './modules/user-code/user-code.module';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { TransactionInterceptor } from './interceptors/transaction.interceptor';
 
 @Module({
   imports: [
@@ -41,6 +42,10 @@ import { TasksModule } from './modules/tasks/tasks.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransactionInterceptor,
     },
   ],
 })

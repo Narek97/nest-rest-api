@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
 import { InitiativesModule } from '../initiatives/initiatives.module';
@@ -6,6 +6,7 @@ import { InitiativesModule } from '../initiatives/initiatives.module';
 @Module({
   controllers: [TasksController],
   providers: [TasksService],
-  imports: [InitiativesModule],
+  imports: [forwardRef(() => InitiativesModule)],
+  exports: [TasksService],
 })
 export class TasksModule {}
