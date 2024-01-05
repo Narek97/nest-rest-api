@@ -1,6 +1,13 @@
 import { BaseModel } from '../base.model';
-import { Column, DataType, Table, BelongsTo } from 'sequelize-typescript';
+import {
+  Column,
+  DataType,
+  Table,
+  BelongsTo,
+  HasMany,
+} from 'sequelize-typescript';
 import { User } from './user.model';
+import { Tasks } from './tasks.model';
 
 @Table({ tableName: 'initiatives' })
 export class Initiatives extends BaseModel<Initiatives, null> {
@@ -21,4 +28,7 @@ export class Initiatives extends BaseModel<Initiatives, null> {
     foreignKey: 'userId',
   })
   user: User;
+
+  @HasMany(() => Tasks, { foreignKey: 'initiativeId' })
+  tasks: Tasks[];
 }

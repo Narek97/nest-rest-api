@@ -16,6 +16,8 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserCodeModule } from './modules/user-code/user-code.module';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { TasksModule } from './modules/tasks/tasks.module';
+import { TransactionInterceptor } from './interceptors/transaction.interceptor';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
     SuperAdminModule,
     AuthModule,
     UserCodeModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [
@@ -39,6 +42,10 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransactionInterceptor,
     },
   ],
 })

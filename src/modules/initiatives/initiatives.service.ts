@@ -1,28 +1,56 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateInitiativeDto } from './dto/create-initiative.dto';
 import { UpdateInitiativeDto } from './dto/update-initiative.dto';
-import { Initiatives, User } from '../../database/models';
+import { Initiatives, Tasks, User } from '../../database/models';
 import { PaginationSearchType } from '../../common/types/base.response-type';
-import { Op } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
+import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()
 export class InitiativesService {
-  create(
+  constructor(
+    @Inject(forwardRef(() => TasksService))
+    readonly taskService: TasksService,
+  ) {}
+
+  async create(
     dto: CreateInitiativeDto,
     user: User,
+    transaction: Transaction,
     sqlRowQueries: string[],
   ): Promise<Initiatives> {
-    return Initiatives.create(
+    const initiative = await Initiatives.create(
       {
         ...dto,
         userId: user.id,
       },
       {
+        transaction,
         logging: (sql) => {
           sqlRowQueries.push(sql);
         },
       },
     );
+    const currentDate = new Date();
+    currentDate.setMonth(currentDate.getMonth() + 1);
+
+    await Tasks.create(
+      {
+        title: initiative.name,
+        description: '',
+        dueDate: currentDate,
+        initiativeId: initiative.id,
+        userId: user.id,
+      },
+      {
+        transaction,
+        logging: (sql) => {
+          sqlRowQueries.push(sql);
+        },
+      },
+    );
+
+    return initiative;
   }
 
   findAll(

@@ -16,6 +16,8 @@ import { UpdateInitiativeDto } from './dto/update-initiative.dto';
 import { AuthGuard } from '../../guards/auth.guard';
 import { GetUser } from '../../decorators/user.decorator';
 import { User } from '../../database/models';
+import { TransactionParam } from '../../decorators/transaction-param.decorator';
+import { Transaction } from 'sequelize';
 
 @UseGuards(AuthGuard)
 @Controller('initiatives')
@@ -26,9 +28,15 @@ export class InitiativesController {
   create(
     @Body() dto: CreateInitiativeDto,
     @GetUser() user: User,
+    @TransactionParam() transaction: Transaction,
     @Req() { sqlRowQueries }: any,
   ) {
-    return this.initiativesService.create(dto, user, sqlRowQueries);
+    return this.initiativesService.create(
+      dto,
+      user,
+      transaction,
+      sqlRowQueries,
+    );
   }
 
   @Get('/get')

@@ -16,6 +16,7 @@ import {
   UserWorkspaces,
   ErrorLogs,
   PerformanceLogs,
+  Tasks,
 } from './models';
 
 export const DB = new Sequelize(databaseConfig[process.env.NODE_ENV]);
@@ -38,6 +39,7 @@ export const databaseProviders = {
       UserWorkspaces,
       ErrorLogs,
       PerformanceLogs,
+      Tasks,
     ]);
     await DB.sync();
     return DB;

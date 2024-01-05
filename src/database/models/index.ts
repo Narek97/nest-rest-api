@@ -12,6 +12,7 @@ import { UserRole } from './models/user-role.model';
 import { UserWorkspaces } from './models/user-workspace.model';
 import { ErrorLogs } from './models/error-logs.model';
 import { PerformanceLogs } from './models/performance-logs.model';
+import { Tasks } from './models/tasks.model';
 
 export {
   Company,
@@ -28,4 +29,5 @@ export {
   Attachment,
   ErrorLogs,
   PerformanceLogs,
+  Tasks,
 };
