@@ -4,10 +4,11 @@ import {
   DataType,
   Table,
   BelongsTo,
-  Index,
+  HasMany,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { Initiatives } from './initiatives.model';
+import { TaskComments } from './task_comments.model';
 
 @Table({ tableName: 'tasks' })
 export class Tasks extends BaseModel<Tasks, null> {
@@ -36,4 +37,7 @@ export class Tasks extends BaseModel<Tasks, null> {
     foreignKey: 'initiativeId',
   })
   initiatives: Initiatives;
+
+  @HasMany(() => TaskComments, { foreignKey: 'taskId' })
+  tasksComments: TaskComments[];
 }
