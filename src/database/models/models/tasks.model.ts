@@ -1,5 +1,11 @@
 import { BaseModel } from '../base.model';
-import { Column, DataType, Table, BelongsTo } from 'sequelize-typescript';
+import {
+  Column,
+  DataType,
+  Table,
+  BelongsTo,
+  Index,
+} from 'sequelize-typescript';
 import { User } from './user.model';
 import { Initiatives } from './initiatives.model';
 
