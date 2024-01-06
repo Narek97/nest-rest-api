@@ -15,7 +15,7 @@ export class TaskComments extends BaseModel<TaskComments, null> {
   @Column({ type: DataType.STRING, allowNull: false })
   comment: string;
 
-  @Column({ type: DataType.INTEGER, allowNull: false })
+  @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 0 })
   repliesCount: 0;
 
   @Column({ type: DataType.INTEGER })

@@ -5,6 +5,7 @@ import {
   Table,
   BelongsTo,
   HasMany,
+  AfterUpdate,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { Initiatives } from './initiatives.model';
