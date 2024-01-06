@@ -18,6 +18,8 @@ import { UserCodeModule } from './modules/user-code/user-code.module';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { TransactionInterceptor } from './interceptors/transaction.interceptor';
+import { TaskCommentsModule } from './modules/task_comments/task_comments.module';
+import { TaskCommentAnswersModule } from './modules/task_comment_answers/task_comment_answers.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { TransactionInterceptor } from './interceptors/transaction.interceptor';
     AuthModule,
     UserCodeModule,
     TasksModule,
+    TaskCommentsModule,
+    TaskCommentAnswersModule,
   ],
   controllers: [AppController],
   providers: [

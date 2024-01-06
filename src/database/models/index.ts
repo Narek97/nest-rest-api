@@ -13,6 +13,8 @@ import { UserWorkspaces } from './models/user-workspace.model';
 import { ErrorLogs } from './models/error-logs.model';
 import { PerformanceLogs } from './models/performance-logs.model';
 import { Tasks } from './models/tasks.model';
+import { TaskComments } from './models/task_comments.model';
+import { TaskCommentAnswer } from './models/task_comment_answers.model';
 
 export {
   Company,
@@ -30,4 +32,6 @@ export {
   ErrorLogs,
   PerformanceLogs,
   Tasks,
+  TaskComments,
+  TaskCommentAnswer,
 };

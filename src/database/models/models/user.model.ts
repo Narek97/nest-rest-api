@@ -11,6 +11,7 @@ import { Organisation } from './organisation.model';
 import { Workspace } from './worksapace.model';
 import { Role } from './role.model';
 import { Tasks } from './tasks.model';
+import { TaskComments } from './task_comments.model';
 
 @Table({ tableName: 'users', createdAt: false, updatedAt: false })
 export class User extends BaseModel<User, null> {
@@ -46,6 +47,9 @@ export class User extends BaseModel<User, null> {
 
   @HasMany(() => Tasks, { foreignKey: 'userId' })
   tasks: Tasks[];
+
+  @HasMany(() => TaskComments, { foreignKey: 'userId' })
+  taskComments: TaskComments[];
 
   @BelongsToMany(() => Workspace, 'user_workspace', 'userId', 'workspaceId')
   workspaces: Workspace[];
