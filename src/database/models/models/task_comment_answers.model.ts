@@ -5,10 +5,8 @@ import {
   Table,
   BelongsTo,
   AfterCreate,
-  AfterDestroy,
-  AfterUpdate,
-  BeforeUpdate,
-  BeforeCreate,
+  AfterBulkUpdate,
+  AfterBulkDestroy,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { TaskComments } from './task_comments.model';
@@ -26,31 +24,31 @@ export class TaskCommentAnswer extends BaseModel<TaskCommentAnswer, null> {
 
   // triggers
 
-  // @AfterCreate
-  // static async AfterCreate(instance: TaskCommentAnswer) {
-  //   console.log(instance, 'in');
-  //   const taskComment = await TaskComments.findByPk(instance.taskCommentId);
-  //   if (taskComment) {
-  //     taskComment.repliesCount += 1;
-  //     await taskComment.save();
-  //   }
-  // }
+  @AfterCreate
+  static async AfterCreate(instance: TaskCommentAnswer) {
+    console.log(instance, 'in');
+    const taskComment = await TaskComments.findByPk(instance.taskCommentId);
+    if (taskComment) {
+      taskComment.repliesCount += 1;
+      await taskComment.save();
+    }
+  }
 
-  @AfterUpdate
+  @AfterBulkUpdate
   static async AfterUpdate(instance: TaskCommentAnswer) {
-    console.log(`User with id ${instance.id} has been updated`);
+    console.log(`User with id ${instance} has been updated`);
     // Add your custom logic here
   }
 
-  @BeforeUpdate
-  static async BeforeUpdate(instance: TaskCommentAnswer) {
-    console.log(`User with id ${instance.id} has been updated`);
-    // Add your custom logic here
-  }
-
-  @AfterDestroy
-  static async AfterDestroy(instance: TaskCommentAnswer) {
-    console.log(instance, 'de');
+  // @BeforeUpdate
+  // static async BeforeUpdate(instance: TaskCommentAnswer) {
+  //   console.log(`User with id ${instance.id} has been updated`);
+  //   // Add your custom logic here
+  // }
+  //
+  @AfterBulkDestroy
+  static async AfterDestroy(instance: TaskCommentAnswer, aa: any) {
+    console.log(aa, 'de');
 
     const taskComment = await TaskComments.findByPk(instance.taskCommentId);
     if (taskComment) {
