@@ -20,6 +20,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { TransactionInterceptor } from './interceptors/transaction.interceptor';
 import { TaskCommentsModule } from './modules/task_comments/task_comments.module';
 import { TaskCommentAnswersModule } from './modules/task_comment_answers/task_comment_answers.module';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { TaskCommentAnswersModule } from './modules/task_comment_answers/task_co
     TasksModule,
     TaskCommentsModule,
     TaskCommentAnswersModule,
+    GatewayModule,
   ],
   controllers: [AppController],
   providers: [
