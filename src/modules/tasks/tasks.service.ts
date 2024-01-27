@@ -8,7 +8,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Tasks, User } from '../../database/models';
 import { InitiativesService } from '../initiatives/initiatives.service';
-import { Transaction } from 'sequelize';
+
 
 @Injectable()
 export class TasksService {
