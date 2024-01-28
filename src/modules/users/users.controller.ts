@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '../../guards/auth.guard';
 import { GetUser } from '../../decorators/user.decorator';
@@ -8,6 +17,7 @@ import { GetMeResponse, ToggleTwoFactorVerificationResponse } from './types';
 import { RolesGuard } from '../../guards/role.guard';
 import { UpdateUserTwoFactorVerification } from './dto/update-user.dto';
 import { BaseMessageResponseType } from '../../common/types/base.response-type';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @ApiTags('User')
 @Controller('user')
@@ -16,6 +26,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('/me')
+  @UseInterceptors(CacheInterceptor)
   @ApiOkResponse({ type: GetMeResponse })
   getMe(@GetUser() user: User, @Req() { sqlRowQueries }: any): Promise<User> {
     return this.usersService.getMe(user.id, sqlRowQueries);
@@ -34,5 +45,13 @@ export class UsersController {
       dto,
       sqlRowQueries,
     );
+  }
+
+  @Get('/:id')
+  getUserById(
+    @Param('id') id: string,
+    @Req() { sqlRowQueries }: any,
+  ): Promise<User> {
+    return this.usersService.getUserById(+id, sqlRowQueries);
   }
 }

@@ -21,6 +21,8 @@ import { TransactionInterceptor } from './interceptors/transaction.interceptor';
 import { TaskCommentsModule } from './modules/task_comments/task_comments.module';
 import { TaskCommentAnswersModule } from './modules/task_comment_answers/task_comment_answers.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [
@@ -40,6 +42,17 @@ import { GatewayModule } from './gateway/gateway.module';
     TaskCommentsModule,
     TaskCommentAnswersModule,
     GatewayModule,
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60,
+      max: 100,
+
+      store: redisStore,
+      socket: {
+        host: '127.0.0.1',
+        port: 6379,
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [
